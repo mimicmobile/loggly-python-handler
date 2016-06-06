@@ -15,8 +15,8 @@ def bg_cb(sess, resp):
 
 
 class HTTPSHandler(logging.Handler):
-    def __init__(self, url, fqdn=False, localname=None, facility=None):
-        logging.Handler.__init__(self)
+    def __init__(self, url, level=logging.DEBUG, fqdn=False, localname=None, facility=None):
+        logging.Handler.__init__(self, level=level)
         self.url = url
         self.fqdn = fqdn
         self.localname = localname
