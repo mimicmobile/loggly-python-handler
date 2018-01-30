@@ -7,107 +7,111 @@ A simple Python logging Loggly handler that can be used to send to a Loggly Gen2
 
 ## Installation
 Download the repository using pip
-
-    sudo pip install loggly-python-handler
-
+```bash
+sudo pip install loggly-python-handler
+```
 ## Use in python
 ### Configuration
 
 Create a Configuration file python.conf and add HTTPSHandler to Configuration File.
+```
+[handlers]
+keys=HTTPSHandler
 
-    [handlers]
-    keys=HTTPSHandler
+[handler_HTTPSHandler]
+class=loggly.handlers.HTTPSHandler
+formatter=jsonFormat
+args=('https://logs-01.loggly.com/inputs/TOKEN/tag/python', True, logging.DEBUG)
+# args[0]=url (Full URL for POST request)
+# args[1]=SSL verify (True|False)
+# args[2]=logging level (logging.DEBUG)
 
-    [handler_HTTPSHandler]
-    class=loggly.handlers.HTTPSHandler
-    formatter=jsonFormat
-    args=('https://logs-01.loggly.com/inputs/TOKEN/tag/python','POST')
+[formatters]
+keys=jsonFormat
 
-    [formatters]
-    keys=jsonFormat
+[loggers]
+keys=root
 
-    [loggers]
-    keys=root
+[logger_root]
+handlers=HTTPSHandler
+level=INFO
 
-    [logger_root]
-    handlers=HTTPSHandler
-    level=INFO
-
-    [formatter_jsonFormat]
-    format={ "loggerName":"%(name)s", "asciTime":"%(asctime)s", "fileName":"%(filename)s", "logRecordCreationTime":"%(created)f", "functionName":"%(funcName)s", "levelNo":"%(levelno)s", "lineNo":"%(lineno)d", "time":"%(msecs)d", "levelName":"%(levelname)s", "message":"%(message)s"}
-    datefmt=
-
+[formatter_jsonFormat]
+format={ "loggerName":"%(name)s", "asciTime":"%(asctime)s", "fileName":"%(filename)s", "logRecordCreationTime":"%(created)f", "functionName":"%(funcName)s", "levelNo":"%(levelno)s", "lineNo":"%(lineno)d", "time":"%(msecs)d", "levelName":"%(levelname)s", "message":"%(message)s"}
+datefmt=
+```
 ### Use Configuration in python file
+```python
+import logging
+import logging.config
+import loggly.handlers
 
-    import logging
-    import logging.config
-    import loggly.handlers
+logging.config.fileConfig('python.conf')
+logger = logging.getLogger('myLogger')
 
-    logging.config.fileConfig('python.conf')
-    logger = logging.getLogger('myLogger')
-
-    logger.info('Test log')
-
+logger.info('Test log')
+```
 ## Use in Django
 
 ### settings.py
-
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-            },
-            'simple': {
-                'format': '%(levelname)s %(message)s'
-            },
-            'json': {
-                'format': '{ "loggerName":"%(name)s", "asciTime":"%(asctime)s", "fileName":"%(filename)s", "logRecordCreationTime":"%(created)f", "functionName":"%(funcName)s", "levelNo":"%(levelno)s", "lineNo":"%(lineno)d", "time":"%(msecs)d", "levelName":"%(levelname)s", "message":"%(message)s"}',
-            },
+```python
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'level': 'DEBUG',
-                'formatter': 'verbose',
-            },
-            'loggly': {
-                'class': 'loggly.handlers.HTTPSHandler',
-                'level': 'INFO',
-                'formatter': 'json',
-                'url': 'https://logs-01.loggly.com/inputs/TOKEN/tag/python',
-            },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
         },
-        'loggers': {
-            'django': {
-                'handlers': ['console', ],
-                'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            },
-            'your_app_name': {
-                'handlers': ['console', 'loggly'],
-                'level': 'INFO',
-            },
+        'json': {
+            'format': '{ "loggerName":"%(name)s", "asciTime":"%(asctime)s", "fileName":"%(filename)s", "logRecordCreationTime":"%(created)f", "functionName":"%(funcName)s", "levelNo":"%(levelno)s", "lineNo":"%(lineno)d", "time":"%(msecs)d", "levelName":"%(levelname)s", "message":"%(message)s"}',
         },
-    }
-
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+        },
+        'loggly': {
+            'class': 'loggly.handlers.HTTPSHandler',
+            'level': 'INFO',
+            'formatter': 'json',
+            'url': 'https://logs-01.loggly.com/inputs/TOKEN/tag/python',
+            'verify': False,  # For self-signed certificates
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', ],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+        'your_app_name': {
+            'handlers': ['console', 'loggly'],
+            'level': 'INFO',
+        },
+    },
+}
+```
 ### views.py
+```python
+import logging
 
-    import logging
+logger = logging.getLogger(__name__)
 
-    logger = logging.getLogger(__name__)
+def logging_example(request):
+    """logging example
+    """
+    logger.debug('this is DEBUG message.')
+    logger.info('this is INFO message.')
+    logger.warning('this is WARNING message.')
+    logger.error('this is ERROR message.')
+    logger.critical('this is CRITICAL message.')
 
-    def logging_example(request):
-        """logging example
-        """
-        logger.debug('this is DEBUG message.')
-        logger.info('this is INFO message.')
-        logger.warning('this is WARNING message.')
-        logger.error('this is ERROR message.')
-        logger.critical('this is CRITICAL message.')
-
-        return Response({}, status=status.HTTP_200_OK)
-
+    return Response({}, status=status.HTTP_200_OK)
+```
 Replace
 <ul>
 <li><strong>TOKEN: </strong>your Loggly Customer Token</li>
