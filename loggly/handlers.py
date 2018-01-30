@@ -15,9 +15,10 @@ def bg_cb(sess, resp):
 
 
 class HTTPSHandler(logging.Handler):
-    def __init__(self, url, level=logging.DEBUG, fqdn=False, localname=None, facility=None):
+    def __init__(self, url, verify=True, level=logging.DEBUG, fqdn=False, localname=None, facility=None):
         logging.Handler.__init__(self, level=level)
         self.url = url
+        self.verify = verify
         self.fqdn = fqdn
         self.localname = localname
         self.facility = facility
@@ -31,8 +32,10 @@ class HTTPSHandler(logging.Handler):
     def emit(self, record):
         try:
             payload = self.format(record)
-            session.post(self.url, data=payload, background_callback=bg_cb)
+            session.post(self.url, data=payload, verify=self.verify,
+                         background_callback=bg_cb)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
             self.handleError(record)
+
